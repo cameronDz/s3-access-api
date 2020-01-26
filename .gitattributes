@@ -1,0 +1,11 @@
+# set config for storing files in source control
+*.java text eol=lf
+*.md text eol=lf
+*.properties text eol=lf
+*.xml text eol=lf
+
+.editorconfig text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.gitkeep text eol=lf
+
