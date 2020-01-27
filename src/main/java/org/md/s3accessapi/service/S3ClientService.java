@@ -3,8 +3,10 @@ package org.md.s3accessapi.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.md.s3accessapi.model.exception.MissingAwsInformation;
 import org.md.s3accessapi.utility.InputStreamUtility;
 import org.md.s3accessapi.utility.ValidationUtility;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -15,8 +17,10 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 public class S3ClientService {
 
+	@Value("${s3.bucket.region}")
+	private String region;
+
 	private AwsCredentialService credentialsService = new AwsCredentialService();
-	private Regions region = null;
 
 	public S3ClientService() {
 		super();
@@ -38,7 +42,7 @@ public class S3ClientService {
 	}
 
 	public String getS3BucketContent(String bucketName, String objectKey) {
-		String content = "";
+		String content = null;
 		try {
 			ValidationUtility.validateKeyExists(bucketName, "bucket");
 			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
@@ -71,24 +75,29 @@ public class S3ClientService {
 			System.out.println("postS3BucketContent() - Exception: " + ex.getMessage());
     	}
     };
-    
+
+	private AmazonS3 configuredS3Client() {
+		AmazonS3 s3Client = null;
+		try {
+			AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+			builder.withCredentials(credentialsService.generateAwsCredentialProvider());
+			builder.withRegion(getRegion());
+			s3Client = builder.build();
+		} catch (Exception ex) {
+			System.out.println("configuredS3Client() - Exception: " + ex.getMessage());
+    	}
+		return s3Client;
+	}
+
     private void validateS3ObjectDoesNotExist(String bucketName, String objectKey) throws Exception {
     	if (configuredS3Client().doesObjectExist(bucketName, objectKey)) {
     		throw new Exception("Object Key already exists");
     	}
     }
 
-	private AmazonS3 configuredS3Client() {
-		AmazonS3 s3Client = null;
-		try {
-			ValidationUtility.validateAwsRegion(region);
-			AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-			builder.withCredentials(credentialsService.generateAwsCredentialProvider());
-			builder.withRegion(region);
-			s3Client = builder.build();
-		} catch (Exception ex) {
-			System.out.println("configuredS3Client() - Exception: " + ex.getMessage());
-    	}
-		return s3Client;
+	private Regions getRegion() throws MissingAwsInformation {
+		Regions awsRegion = Regions.valueOf(region);
+		ValidationUtility.validateAwsRegion(awsRegion);
+		return awsRegion;
 	}
 }
