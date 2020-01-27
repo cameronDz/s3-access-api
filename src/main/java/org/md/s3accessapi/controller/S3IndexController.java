@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.md.s3accessapi.service.S3ClientService;
 import org.md.s3accessapi.utility.DateUtility;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,8 @@ public class S3IndexController {
 	@Value("${s3.bucket.name}")
 	private String bucketName;
 
-	private S3ClientService s3ClientService = new S3ClientService();
+	@Autowired
+	private S3ClientService s3ClientService;
 
 	@RequestMapping("/list")
 	public ResponseEntity<Map<String, Object>> getBuckets() {

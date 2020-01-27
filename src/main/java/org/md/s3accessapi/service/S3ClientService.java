@@ -6,7 +6,9 @@ import java.util.List;
 import org.md.s3accessapi.model.exception.MissingAwsInformation;
 import org.md.s3accessapi.utility.InputStreamUtility;
 import org.md.s3accessapi.utility.ValidationUtility;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringBootConfiguration;
 
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -15,12 +17,14 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
+@SpringBootConfiguration
 public class S3ClientService {
 
 	@Value("${s3.bucket.region}")
 	private String region;
 
-	private AwsCredentialService credentialsService = new AwsCredentialService();
+	@Autowired
+	private AwsCredentialService credentialsService;
 
 	public S3ClientService() {
 		super();
@@ -96,7 +100,7 @@ public class S3ClientService {
     }
 
 	private Regions getRegion() throws MissingAwsInformation {
-		Regions awsRegion = Regions.valueOf(region);
+		Regions awsRegion = Regions.fromName(region);
 		ValidationUtility.validateAwsRegion(awsRegion);
 		return awsRegion;
 	}

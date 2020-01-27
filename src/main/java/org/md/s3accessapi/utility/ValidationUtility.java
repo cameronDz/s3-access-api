@@ -8,7 +8,6 @@ import com.amazonaws.regions.Regions;
 /**
  * utility class used to throw exceptions when 
  * @author cameron
- *
  */
 public class ValidationUtility {
 
