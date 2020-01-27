@@ -31,8 +31,8 @@ public class S3ClientService {
 			for (S3ObjectSummary summary : objectList.getObjectSummaries()) {
 				list.add(summary.getKey());
 			}
-		} catch (Exception e) {
-			// TODO handle exception
+		} catch (Exception ex) {
+			System.out.println("getS3BucketContentList() - Exception: " + ex.getMessage());
 		}
 		return list;
 	}
@@ -44,8 +44,8 @@ public class S3ClientService {
 			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
 			S3Object s3Object = configuredS3Client().getObject(bucketName, objectKey);
 			content = InputStreamUtility.getAsString(s3Object.getObjectContent());
-		} catch (Exception e) {
-			// TODO handle exception
+		} catch (Exception ex) {
+			System.out.println("getS3BucketContent() - Exception: " + ex.getMessage());
 		}
 		return content;
 	}
@@ -56,8 +56,8 @@ public class S3ClientService {
 			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
 			ValidationUtility.validateKeyExists(content, "content");
 			configuredS3Client().putObject(bucketName, objectKey, content);
-    	} catch (Exception e) {
-    		// todo handle
+		} catch (Exception ex) {
+			System.out.println("putS3BucketContent() - Exception: " + ex.getMessage());
     	}
     }
     
@@ -67,8 +67,8 @@ public class S3ClientService {
 			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
 			validateS3ObjectDoesNotExist(bucketName, objectKey);
 			putS3BucketContent(bucketName, objectKey, content);
-    	} catch (Exception e) {
-    		// todo handle exception
+		} catch (Exception ex) {
+			System.out.println("postS3BucketContent() - Exception: " + ex.getMessage());
     	}
     };
     
@@ -81,13 +81,14 @@ public class S3ClientService {
 	private AmazonS3 configuredS3Client() {
 		AmazonS3 s3Client = null;
 		try {
+			ValidationUtility.validateAwsRegion(region);
 			AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
 			builder.withCredentials(credentialsService.generateAwsCredentialProvider());
 			builder.withRegion(region);
 			s3Client = builder.build();
-		} catch (Exception e) {
-			// TODO some catch logic
-		}
+		} catch (Exception ex) {
+			System.out.println("configuredS3Client() - Exception: " + ex.getMessage());
+    	}
 		return s3Client;
 	}
 }

@@ -8,8 +8,8 @@ import com.amazonaws.auth.BasicAWSCredentials;
 
 public class AwsCredentialService {
 
-	private String accessKey = "";
-	private String secretKey = "";
+	private String accessKey = null;
+	private String secretKey = null;
 
 	public AwsCredentialService() {
 		super();
@@ -28,8 +28,8 @@ public class AwsCredentialService {
 			ValidationUtility.validateKeyExists(secretKey, "secret");
 			AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
 			credentialProvider = new AWSStaticCredentialsProvider(credentials);
-		} catch (Exception e) {
-			// TODO some catch logic
+		} catch (Exception ex) {
+			System.out.println("generateAwsCredentialProvider() - Exception: " + ex.getMessage());
 		}
 		return credentialProvider;
 	}

@@ -1,74 +1,84 @@
 package org.md.s3accessapi.controller;
 
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.md.s3accessapi.service.S3ClientService;
+import org.md.s3accessapi.utility.DateUtility;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @RestController
 public class S3IndexController {
 
 	private S3ClientService s3ClientService = new S3ClientService();
-	private String bucketName = "";
+	private String bucketName = null;
 
-	@RequestMapping("/bucket-list")
-	public ResponseEntity<List<String>> getBuckets() {
+	@RequestMapping("/list")
+	public ResponseEntity<Map<String, Object>> getBuckets() {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-		List<String> list = null;
+		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
-			list = s3ClientService.getS3BucketContentList(bucketName);
+			List<String> list = s3ClientService.getS3BucketContentList(bucketName);
+			payload.put("payload", list);
 			status = HttpStatus.OK;
 		} catch (Exception ex) {
-			// TODO catch
+			System.out.println("getBuckets() - Exception: " + ex.getMessage());
 		}
-		return new ResponseEntity<List<String>>(list, status);
+		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 	
 	@RequestMapping("/index")
-	public ResponseEntity<String> getBucketContent() {
+	public ResponseEntity<Map<String, Object>> getBucketContent() {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-		String content = null;
+		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
 			String objectKey = "index.json";
-			content = s3ClientService.getS3BucketContent(bucketName, objectKey);
+			String content = s3ClientService.getS3BucketContent(bucketName, objectKey);
+			JsonNode node = new ObjectMapper().readTree(content);
+			payload.put("payload", node);
 			status = HttpStatus.OK;
 		} catch (Exception ex) {
-			// TODO catch
+			System.out.println("getBucketContent() - Exception: " + ex.getMessage());
 		}
-		return new ResponseEntity<String>(content, status);
+		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 	
 	@RequestMapping("/json")
-	public ResponseEntity<String> getBucketJsonContent() {
+	public ResponseEntity<Map<String, Object>> getBucketJsonContent() {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-		String content = null;
+		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
-			String objectKey = "";
-			content = s3ClientService.getS3BucketContent(bucketName, objectKey);
+			String objectKey = null;
+			String content = s3ClientService.getS3BucketContent(bucketName, objectKey);
+			JsonNode node = new ObjectMapper().readTree(content);
+			payload.put("payload", node);
 			status = HttpStatus.OK;
 		} catch (Exception ex) {
-			// TODO catch
+			System.out.println("getBucketJsonContent() - Exception: " + ex.getMessage());
 		}
-		return new ResponseEntity<String>(content, status);
+		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
-	
-	@RequestMapping("/upload-test")
-	public ResponseEntity<String> pubBucketJsonContent() {
+
+	@RequestMapping("/upload")
+	public ResponseEntity<Map<String, Object>> uploadBucketJsonContent() {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-		String content = null;
+		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
-			String objectKey = "test-" + new Date().toString().replaceAll(" ", "") + ".json";
-			content = "{ \"test\": { \"innner\": \"testing\" } }";
+			String objectKey = DateUtility.getCurrentDateTimeStampString() + ".json";
+			String content = null;
 			s3ClientService.postS3BucketContent(bucketName, objectKey, content);
 			status = HttpStatus.OK;
+			payload.put("payload", new ObjectMapper().readTree(content));
 		} catch (Exception ex) {
-			// TODO catch
-			content = null;
+			System.out.println("uploadBucketJsonContent() Exception: " + ex.getMessage());
 		}
-		return new ResponseEntity<String>(content, status);
+		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 }

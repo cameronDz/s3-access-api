@@ -1,6 +1,9 @@
 package org.md.s3accessapi.utility;
 
+import org.md.s3accessapi.model.exception.MissingAwsInformation;
 import org.md.s3accessapi.model.exception.MissingKeyException;
+
+import com.amazonaws.regions.Regions;
 
 /**
  * utility class used to throw exceptions when 
@@ -22,7 +25,14 @@ public class ValidationUtility {
 		}
 	}
 
+	public static void validateAwsRegion(Regions region) throws MissingAwsInformation {
+		if (region == null) {
+			throw new MissingAwsInformation("Provided Region is null.");
+		}
+	}
+
 	private static boolean isStringNullOrEmpty(String s) {
 		return s == null || s.trim().isEmpty();
 	}
+
 }
