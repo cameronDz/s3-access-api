@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Created validation classes for checking S3 request payloads before trying to communicate
 - New custom exceptions for failed validations
 - Basic System out logging on exception catches
+- Ability to add new JSONs blobs to S3 and update index in bucket
 
 ### Changed
 - All response now returning String/Object map, with a payload key
