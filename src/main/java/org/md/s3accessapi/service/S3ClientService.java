@@ -16,6 +16,8 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 @SpringBootConfiguration
 public class S3ClientService {
@@ -67,6 +69,21 @@ public class S3ClientService {
 		} catch (Exception ex) {
 			System.out.println("putS3BucketContent() - Exception: " + ex.getMessage());
     	}
+    }
+    
+    public boolean addKeyToJsonIndex(String bucketName, String keyName) {
+    	boolean keyAddedToIndex = false;
+    	try {
+    		String indexString = getS3BucketContent(bucketName, "index.json");
+    		ArrayNode listNode = (ArrayNode) new ObjectMapper().readTree(indexString).get("list");
+    		listNode.add(Long.valueOf(keyName.replace(".json", "")));
+    		String content = "{\"list\":" + String.valueOf(listNode) + "}";
+    		putS3BucketContent(bucketName, "index.json", content);
+    		keyAddedToIndex = true;
+    	} catch (Exception ex) {
+			System.out.println("addKeyToJsonIndex() - Exception: " + ex.getMessage());
+    	}
+    	return keyAddedToIndex;
     }
     
     public void postS3BucketContent(String bucketName, String objectKey, String content) {

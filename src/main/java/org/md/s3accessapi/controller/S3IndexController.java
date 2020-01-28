@@ -10,7 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,7 +29,7 @@ public class S3IndexController {
 	@Autowired
 	private S3ClientService s3ClientService;
 
-	@RequestMapping("/list")
+	@RequestMapping(path="/list", method=RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getBuckets() {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
@@ -39,7 +43,7 @@ public class S3IndexController {
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 	
-	@RequestMapping("/index")
+	@RequestMapping(path="/index", method=RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getBucketContent() {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
@@ -55,13 +59,12 @@ public class S3IndexController {
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 	
-	@RequestMapping("/json")
-	public ResponseEntity<Map<String, Object>> getBucketJsonContent() {
+	@RequestMapping(path="/json/{key}", method=RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> getBucketJsonContent(@PathVariable String key) {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
-			String objectKey = null;
-			String content = s3ClientService.getS3BucketContent(bucketName, objectKey);
+			String content = s3ClientService.getS3BucketContent(bucketName, key + ".json");
 			JsonNode node = new ObjectMapper().readTree(content);
 			payload.put("payload", node);
 			status = HttpStatus.OK;
@@ -71,19 +74,27 @@ public class S3IndexController {
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 
-	@RequestMapping("/upload")
-	public ResponseEntity<Map<String, Object>> uploadBucketJsonContent() {
+	@RequestMapping(path="/upload", method=RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> uploadBucketJsonContent(
+			@RequestParam(required=false, defaultValue="false") Boolean index,
+			@RequestBody JsonNode body) {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
+		boolean successfullyIndexed = false;
 		try {
 			String objectKey = DateUtility.getCurrentDateTimeStampString() + ".json";
-			String content = null;
+			String content = String.valueOf(body);
 			s3ClientService.postS3BucketContent(bucketName, objectKey, content);
-			status = HttpStatus.OK;
-			payload.put("payload", new ObjectMapper().readTree(content));
+			status = HttpStatus.CREATED;
+			payload.put("key", objectKey);
+			if (index == true) {
+				successfullyIndexed = s3ClientService.addKeyToJsonIndex(bucketName, objectKey);
+			}
+			payload.put("indexed", successfullyIndexed);
 		} catch (Exception ex) {
 			System.out.println("uploadBucketJsonContent() Exception: " + ex.getMessage());
 		}
+		System.out.println("map: " + payload);
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 }
