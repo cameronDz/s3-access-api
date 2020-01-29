@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New custom exceptions for failed validations
 - Basic System out logging on exception catches
 - Ability to add new JSONs blobs to S3 and update index in bucket
+- Feature flags for each HTTP method
 
 ### Changed
 - All response now returning String/Object map, with a payload key
