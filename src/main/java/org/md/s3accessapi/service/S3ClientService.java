@@ -17,6 +17,8 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -72,6 +74,35 @@ public class S3ClientService {
 			System.out.println("putS3BucketContent() - Exception: " + ex.getMessage());
     	}
     }
+
+	public Boolean updateS3BucketIndex(String bucketName, String key) {
+		Boolean updated = null;
+		String bucketObject = "index.json";
+		try {
+			boolean found = false;
+			ArrayNode content = (ArrayNode) new ObjectMapper().readTree(getS3BucketContent(bucketName, bucketObject)).get("list");
+			Integer length = content.size();
+			for (int index = 0; index < length; index++) {
+				if (key != null && key.equals(content.get(index).asText())) {
+					content.remove(index);
+					found = true;
+					break;
+				}
+			}
+			if (found == true) {
+				String newContent = "{ \"list\": " + new ObjectMapper().writeValueAsString(content) + " }";
+				putS3BucketContent(bucketName, bucketObject, newContent);
+				updated = true;
+			} else {
+				updated = false;
+			}
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		return updated;
+	}
     
     public boolean addKeyToJsonIndex(String bucketName, String keyName) {
     	boolean keyAddedToIndex = false;

@@ -75,6 +75,25 @@ public class S3IndexController {
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 	
+	@RequestMapping(path="/index/remove/{key}", method=RequestMethod.PUT)
+	public ResponseEntity<Map<String, Object>> getBucketContent(
+			@PathVariable String key) {
+		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+		Map<String, Object> payload = new HashMap<String, Object>();
+		Boolean removedIndex = null;
+		try {
+			featureFlagService.httpRequestFlagIsEnabled("PUT");
+			removedIndex = s3ClientService.updateS3BucketIndex(bucketName, key);
+		} catch (FeatureFlagException ffEx) {
+			status = HttpStatus.LOCKED;
+			System.out.println("getBucketJsonContent() Exception: " + ffEx.getMessage());
+		} catch (Exception ex) {
+			System.out.println("getBucketJsonContent() - Exception: " + ex.getMessage());
+		}
+		payload.put("removedIndex", removedIndex);
+		return new ResponseEntity<Map<String, Object>>(payload, status);
+	}
+	
 	@RequestMapping(path="/json/{key}", method=RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getBucketJsonContent(
 			@PathVariable String key) {
@@ -136,6 +155,9 @@ public class S3IndexController {
 		} catch (FeatureFlagException ffEx) {
 			status = HttpStatus.LOCKED;
 			System.out.println("uploadBucketJsonContent() Exception: " + ffEx.getMessage());
+		} catch (NotImplementedException niEx) {
+			status = HttpStatus.NOT_IMPLEMENTED;
+			System.out.println("uploadBucketJsonContent() Exception: " + niEx.getMessage());
 		} catch (Exception ex) {
 			System.out.println("uploadBucketJsonContent() Exception: " + ex.getMessage());
 		}
@@ -155,6 +177,9 @@ public class S3IndexController {
 		} catch (FeatureFlagException ffEx) {
 			status = HttpStatus.LOCKED;
 			System.out.println("uploadBucketJsonContent() Exception: " + ffEx.getMessage());
+		} catch (NotImplementedException niEx) {
+			status = HttpStatus.NOT_IMPLEMENTED;
+			System.out.println("uploadBucketJsonContent() Exception: " + niEx.getMessage());
 		} catch (Exception ex) {
 			System.out.println("uploadBucketJsonContent() Exception: " + ex.getMessage());
 		}
