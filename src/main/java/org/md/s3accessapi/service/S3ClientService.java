@@ -13,6 +13,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -66,6 +67,7 @@ public class S3ClientService {
 			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
 			ValidationUtility.validateKeyExists(content, "content");
 			configuredS3Client().putObject(bucketName, objectKey, content);
+			configuredS3Client().setObjectAcl(bucketName, objectKey, CannedAccessControlList.PublicRead);
 		} catch (Exception ex) {
 			System.out.println("putS3BucketContent() - Exception: " + ex.getMessage());
     	}
