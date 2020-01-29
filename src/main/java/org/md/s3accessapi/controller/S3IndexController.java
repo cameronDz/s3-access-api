@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.md.s3accessapi.model.exception.FeatureFlagException;
+import org.md.s3accessapi.service.FeatureFlagService;
 import org.md.s3accessapi.service.S3ClientService;
 import org.md.s3accessapi.utility.DateUtility;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,14 +31,21 @@ public class S3IndexController {
 	@Autowired
 	private S3ClientService s3ClientService;
 
+	@Autowired
+	private FeatureFlagService featureFlagService;
+
 	@RequestMapping(path="/list", method=RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getBuckets() {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
+			featureFlagService.httpRequestFlagIsEnabled("GET");
 			List<String> list = s3ClientService.getS3BucketContentList(bucketName);
 			payload.put("payload", list);
 			status = HttpStatus.OK;
+		} catch (FeatureFlagException ffEx) {
+			status = HttpStatus.LOCKED;
+			System.out.println("getBuckets() Exception: " + ffEx.getMessage());
 		} catch (Exception ex) {
 			System.out.println("getBuckets() - Exception: " + ex.getMessage());
 		}
@@ -48,11 +57,15 @@ public class S3IndexController {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
+			featureFlagService.httpRequestFlagIsEnabled("GET");
 			String objectKey = "index.json";
 			String content = s3ClientService.getS3BucketContent(bucketName, objectKey);
 			JsonNode node = new ObjectMapper().readTree(content);
 			payload.put("payload", node);
 			status = HttpStatus.OK;
+		} catch (FeatureFlagException ffEx) {
+			status = HttpStatus.LOCKED;
+			System.out.println("getBucketContent() Exception: " + ffEx.getMessage());
 		} catch (Exception ex) {
 			System.out.println("getBucketContent() - Exception: " + ex.getMessage());
 		}
@@ -64,10 +77,14 @@ public class S3IndexController {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
+			featureFlagService.httpRequestFlagIsEnabled("GET");
 			String content = s3ClientService.getS3BucketContent(bucketName, key + ".json");
 			JsonNode node = new ObjectMapper().readTree(content);
 			payload.put("payload", node);
 			status = HttpStatus.OK;
+		} catch (FeatureFlagException ffEx) {
+			status = HttpStatus.LOCKED;
+			System.out.println("getBucketJsonContent() Exception: " + ffEx.getMessage());
 		} catch (Exception ex) {
 			System.out.println("getBucketJsonContent() - Exception: " + ex.getMessage());
 		}
@@ -82,6 +99,7 @@ public class S3IndexController {
 		Map<String, Object> payload = new HashMap<String, Object>();
 		boolean successfullyIndexed = false;
 		try {
+			featureFlagService.httpRequestFlagIsEnabled("POST");
 			String objectKey = DateUtility.getCurrentDateTimeStampString() + ".json";
 			String content = String.valueOf(body);
 			s3ClientService.postS3BucketContent(bucketName, objectKey, content);
@@ -91,6 +109,9 @@ public class S3IndexController {
 				successfullyIndexed = s3ClientService.addKeyToJsonIndex(bucketName, objectKey);
 			}
 			payload.put("indexed", successfullyIndexed);
+		} catch (FeatureFlagException ffEx) {
+			status = HttpStatus.LOCKED;
+			System.out.println("uploadBucketJsonContent() Exception: " + ffEx.getMessage());
 		} catch (Exception ex) {
 			System.out.println("uploadBucketJsonContent() Exception: " + ex.getMessage());
 		}
