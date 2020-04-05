@@ -1,6 +1,6 @@
-package org.md.s3accessapi.service;
+package org.md.api.s3.service;
 
-import org.md.s3accessapi.model.exception.FeatureFlagException;
+import org.md.api.s3.model.exception.FeatureFlagException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 

@@ -1,11 +1,11 @@
-package org.md.s3accessapi.service;
+package org.md.api.s3.service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.md.s3accessapi.model.exception.MissingAwsInformation;
-import org.md.s3accessapi.utility.InputStreamUtility;
-import org.md.s3accessapi.utility.ValidationUtility;
+import org.md.api.s3.model.exception.MissingAwsInformation;
+import org.md.api.s3.utility.InputStreamUtility;
+import org.md.api.s3.utility.ValidationUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;

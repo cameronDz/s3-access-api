@@ -1,4 +1,4 @@
-package org.md.s3accessapi;
+package org.md.api.s3;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;

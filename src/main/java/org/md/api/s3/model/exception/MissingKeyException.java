@@ -1,4 +1,4 @@
-package org.md.s3accessapi.model.exception;
+package org.md.api.s3.model.exception;
 
 /**
  * exception thrown when a key value is missing from a method call

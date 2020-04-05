@@ -1,4 +1,4 @@
-package org.md.s3accessapi.config;
+package org.md.api.s3.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

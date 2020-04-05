@@ -1,4 +1,4 @@
-package org.md.s3accessapi.utility;
+package org.md.api.s3.utility;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

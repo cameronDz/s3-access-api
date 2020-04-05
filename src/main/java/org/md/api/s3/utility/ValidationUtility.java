@@ -1,7 +1,7 @@
-package org.md.s3accessapi.utility;
+package org.md.api.s3.utility;
 
-import org.md.s3accessapi.model.exception.MissingAwsInformation;
-import org.md.s3accessapi.model.exception.MissingKeyException;
+import org.md.api.s3.model.exception.MissingAwsInformation;
+import org.md.api.s3.model.exception.MissingKeyException;
 
 import com.amazonaws.regions.Regions;
 

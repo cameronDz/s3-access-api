@@ -1,14 +1,14 @@
-package org.md.s3accessapi.controller;
+package org.md.api.s3.controller;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.md.s3accessapi.model.exception.FeatureFlagException;
-import org.md.s3accessapi.service.FeatureFlagService;
-import org.md.s3accessapi.service.S3ClientService;
-import org.md.s3accessapi.utility.DateUtility;
+import org.md.api.s3.model.exception.FeatureFlagException;
+import org.md.api.s3.service.FeatureFlagService;
+import org.md.api.s3.service.S3ClientService;
+import org.md.api.s3.utility.DateUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
