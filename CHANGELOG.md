@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - All response now returning String/Object map, with a payload key
 - Moved validations to own classes
+- Class package naming convention
 
 ## [0.0.1-SNAPSHOT] - 2020-01-26
 ### Added
