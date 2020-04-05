@@ -30,7 +30,7 @@ import io.swagger.annotations.ApiResponses;
 
 @CrossOrigin
 @RestController
-public class S3IndexController {
+public class S3Controller {
 
 	@Value("${s3.bucket.name}")
 	private String bucketName;
@@ -65,8 +65,7 @@ public class S3IndexController {
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 
-
-    @ApiOperation(value = "List of all JSON objects that have been indexed for Log-Notes app in S3 bucket")
+    @ApiOperation(value = "List of all JSON objects that have been indexed in the index.json object of the configured S3 bucket")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Successfully retrieved list."),
         @ApiResponse(code = 423, message = "Feature is currently locked."),
@@ -91,9 +90,8 @@ public class S3IndexController {
 		}
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
-	
 
-    @ApiOperation(value = "Remove a specific JSON from index used for Log-Notes")
+    @ApiOperation(value = "Remove a specific item from the index.json object used for the configured S3 bucket.")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Request was processed, JSON was removed from index."),
         @ApiResponse(code = 204, message = "Request was successfully processed, no JSON was removed from index."),
@@ -146,7 +144,7 @@ public class S3IndexController {
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 
-    @ApiOperation(value = "Upload a specific JSON key to S3 bucket")
+    @ApiOperation(value = "Upload a specific JSON key to S3 bucket; file will be named ")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Successfully uploaded key."),
         @ApiResponse(code = 423, message = "Feature is currently locked."),
