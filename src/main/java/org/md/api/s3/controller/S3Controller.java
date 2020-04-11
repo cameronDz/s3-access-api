@@ -198,6 +198,7 @@ public class S3Controller {
 			featureFlagService.httpRequestFlagIsEnabled("PUT");
 			String objectKey = key + JSON_EXTENSION;
 			successfullyUpdated = s3ClientService.putS3BucketContent(bucketName, objectKey, new ObjectMapper().writeValueAsString(body));
+			status = HttpStatus.OK;
 		} catch (FeatureFlagException ffEx) {
 			status = HttpStatus.LOCKED;
 			payload.put("message", ffEx.getMessage());
