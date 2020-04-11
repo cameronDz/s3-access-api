@@ -31,6 +31,8 @@ import io.swagger.annotations.ApiResponses;
 @CrossOrigin
 @RestController
 public class S3Controller {
+    
+    private final String JSON_EXTENSION = ".json";
 
 	@Value("${s3.bucket.name}")
 	private String bucketName;
@@ -77,7 +79,7 @@ public class S3Controller {
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
 			featureFlagService.httpRequestFlagIsEnabled("GET");
-			String objectKey = "index.json";
+			String objectKey = "index" + JSON_EXTENSION;
 			String content = s3ClientService.getS3BucketContent(bucketName, objectKey);
 			JsonNode node = new ObjectMapper().readTree(content);
 			payload.put("payload", node);
@@ -131,7 +133,8 @@ public class S3Controller {
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
 			featureFlagService.httpRequestFlagIsEnabled("GET");
-			String content = s3ClientService.getS3BucketContent(bucketName, key + ".json");
+			String objectkey = key + JSON_EXTENSION;
+			String content = s3ClientService.getS3BucketContent(bucketName, objectkey);
 			JsonNode node = new ObjectMapper().readTree(content);
 			payload.put("payload", node);
 			status = HttpStatus.OK;
@@ -159,7 +162,7 @@ public class S3Controller {
 		Boolean successfullyIndexed = null;
 		try {
 			featureFlagService.httpRequestFlagIsEnabled("POST");
-			String objectKey = DateUtility.getCurrentDateTimeStampString() + ".json";
+			String objectKey = DateUtility.getCurrentDateTimeStampString() + JSON_EXTENSION;
 			String content = String.valueOf(body);
 			s3ClientService.postS3BucketContent(bucketName, objectKey, content);
 			status = HttpStatus.CREATED;
@@ -193,7 +196,8 @@ public class S3Controller {
 		Boolean successfullyUpdated = false;
 		try {
 			featureFlagService.httpRequestFlagIsEnabled("PUT");
-			successfullyUpdated = s3ClientService.putS3BucketContent(bucketName, key, new ObjectMapper().writeValueAsString(body));
+			String objectKey = key + JSON_EXTENSION;
+			successfullyUpdated = s3ClientService.putS3BucketContent(bucketName, objectKey, new ObjectMapper().writeValueAsString(body));
 		} catch (FeatureFlagException ffEx) {
 			status = HttpStatus.LOCKED;
 			System.out.println("uploadBucketJsonContent() Exception: " + ffEx.getMessage());
