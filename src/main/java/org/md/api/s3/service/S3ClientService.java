@@ -63,16 +63,19 @@ public class S3ClientService {
 		return content;
 	}
     
-    public void putS3BucketContent(String bucketName, String objectKey, String content) {
+    public Boolean putS3BucketContent(String bucketName, String objectKey, String content) {
+        Boolean wasSuccessful = false;
     	try {
 			ValidationUtility.validateKeyExists(bucketName, "bucket");
 			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
 			ValidationUtility.validateKeyExists(content, "content");
 			configuredS3Client().putObject(bucketName, objectKey, content);
 			configuredS3Client().setObjectAcl(bucketName, objectKey, CannedAccessControlList.PublicRead);
+			wasSuccessful = true;
 		} catch (Exception ex) {
 			System.out.println("putS3BucketContent() - Exception: " + ex.getMessage());
     	}
+    	return wasSuccessful;
     }
 
 	public Boolean updateS3BucketIndex(String bucketName, String key) {

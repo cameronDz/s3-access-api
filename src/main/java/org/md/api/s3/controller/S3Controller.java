@@ -190,10 +190,10 @@ public class S3Controller {
 			@PathVariable String key) {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
-		Boolean successfullyIndexed = null;
+		Boolean successfullyUpdated = false;
 		try {
 			featureFlagService.httpRequestFlagIsEnabled("PUT");
-			throw new NotImplementedException("Method not implemented");
+			successfullyUpdated = s3ClientService.putS3BucketContent(bucketName, key, new ObjectMapper().writeValueAsString(body));
 		} catch (FeatureFlagException ffEx) {
 			status = HttpStatus.LOCKED;
 			System.out.println("uploadBucketJsonContent() Exception: " + ffEx.getMessage());
@@ -203,7 +203,7 @@ public class S3Controller {
 		} catch (Exception ex) {
 			System.out.println("uploadBucketJsonContent() Exception: " + ex.getMessage());
 		}
-		payload.put("indexed", successfullyIndexed);
+		payload.put("successfullyUpdated", successfullyUpdated);
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 
