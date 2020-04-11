@@ -1,4 +1,4 @@
-package org.md.s3accessapi;
+package org.md.api.s3;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
