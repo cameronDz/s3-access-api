@@ -200,12 +200,12 @@ public class S3Controller {
 			successfullyUpdated = s3ClientService.putS3BucketContent(bucketName, objectKey, new ObjectMapper().writeValueAsString(body));
 		} catch (FeatureFlagException ffEx) {
 			status = HttpStatus.LOCKED;
-			System.out.println("uploadBucketJsonContent() Exception: " + ffEx.getMessage());
+			payload.put("message", ffEx.getMessage());
 		} catch (NotImplementedException niEx) {
 			status = HttpStatus.NOT_IMPLEMENTED;
-			System.out.println("uploadBucketJsonContent() Exception: " + niEx.getMessage());
+            payload.put("message", niEx.getMessage());
 		} catch (Exception ex) {
-			System.out.println("uploadBucketJsonContent() Exception: " + ex.getMessage());
+            payload.put("message", ex.getMessage());
 		}
 		payload.put("successfullyUpdated", successfullyUpdated);
 		return new ResponseEntity<Map<String, Object>>(payload, status);

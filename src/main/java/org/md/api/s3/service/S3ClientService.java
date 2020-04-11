@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.md.api.s3.model.exception.MissingAwsInformation;
+import org.md.api.s3.model.exception.MissingKeyException;
 import org.md.api.s3.utility.InputStreamUtility;
 import org.md.api.s3.utility.ValidationUtility;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,7 @@ public class S3ClientService {
 		return content;
 	}
     
-    public Boolean putS3BucketContent(String bucketName, String objectKey, String content) {
+    public Boolean putS3BucketContent(String bucketName, String objectKey, String content) throws MissingAwsInformation, MissingKeyException {
         Boolean wasSuccessful = false;
     	try {
 			ValidationUtility.validateKeyExists(bucketName, "bucket");
@@ -72,13 +73,15 @@ public class S3ClientService {
 			configuredS3Client().putObject(bucketName, objectKey, content);
 			configuredS3Client().setObjectAcl(bucketName, objectKey, CannedAccessControlList.PublicRead);
 			wasSuccessful = true;
-		} catch (Exception ex) {
-			System.out.println("putS3BucketContent() - Exception: " + ex.getMessage());
+        } catch (MissingKeyException e) {
+               throw e;
+        } catch (Exception e) {
+		    throw new MissingAwsInformation(e.getMessage());
     	}
     	return wasSuccessful;
     }
 
-	public Boolean updateS3BucketIndex(String bucketName, String key) {
+	public Boolean updateS3BucketIndex(String bucketName, String key) throws MissingAwsInformation, MissingKeyException {
 		Boolean updated = null;
 		String bucketObject = "index.json";
 		try {
