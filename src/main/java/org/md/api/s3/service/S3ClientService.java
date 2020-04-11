@@ -71,7 +71,11 @@ public class S3ClientService {
 			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
 			ValidationUtility.validateKeyExists(content, "content");
 			configuredS3Client().putObject(bucketName, objectKey, content);
-			configuredS3Client().setObjectAcl(bucketName, objectKey, CannedAccessControlList.PublicRead);
+			try {
+			    configuredS3Client().setObjectAcl(bucketName, objectKey, CannedAccessControlList.PublicRead);
+	        } catch (Exception e) {
+	            System.out.println("ERROR: " + e.getMessage());
+	        }
 			wasSuccessful = true;
         } catch (MissingKeyException e) {
                throw e;
