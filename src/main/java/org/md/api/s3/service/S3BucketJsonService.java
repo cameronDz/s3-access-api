@@ -25,7 +25,7 @@ public class S3BucketJsonService {
     public List<String> getS3BucketJsonContentList(String bucketName) throws AwsS3GeneralException {
         List<String> list = s3ClientService.getS3BucketContentList(bucketName);
         int listSize = list != null ? list.size() : -1;
-        for (int i = listSize; i >= 0; i++) {
+        for (int i = listSize-1; i >= 0; i--) {
             if (!list.get(i).endsWith(JSON_EXTENSION)) {
                 list.remove(i);
             }

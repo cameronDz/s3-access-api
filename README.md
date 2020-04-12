@@ -24,7 +24,7 @@ this API is design specifically JSON objects stored on S3. when you deploy the a
 ### api pathing ###
 since this API is dealing with JSON, all endpoints currently start with ```/json```. there are current 4 implemented methods (with a fifth one not implemented). __note__: when ever refering to a specific object key name in the bucket, the .json extension should NOT be included
 1. ```/json/list``` a GET request for all JSON objects in the S3 bucket
-1. ```/json/{key}``` a GET request for a specific JSON object with name as key.
+1. ```/json/object/{key}``` a GET request for a specific JSON object with name as key.
 1. ```/json/upload/{key}``` a POST request for a new JSON object to be put in the bucket
 1. ```/json/update/{key}``` a PUT request to update an existing JSON object in the bucket
 1. ```/json/delete/{key}``` (**not implemented**)a DELETE request to remove an existing JSON object in the bucket

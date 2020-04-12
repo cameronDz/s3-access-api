@@ -78,7 +78,7 @@ public class S3JsonController {
         @ApiResponse(code = 423, message = "Feature is currently locked."),
         @ApiResponse(code = 500, message = "Some unexpected issue happened.")
     })
-	@RequestMapping(path="/{key}", method=RequestMethod.GET)
+	@RequestMapping(path="/object/{key}", method=RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getBucketJsonContent(
 			@PathVariable String key) {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
