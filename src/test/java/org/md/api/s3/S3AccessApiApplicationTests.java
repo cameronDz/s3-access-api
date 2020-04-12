@@ -7,7 +7,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 class S3AccessApiApplicationTests {
 
 	@Test
-	void contextLoads() {
-	}
+	public void contextLoads() {}
 
 }

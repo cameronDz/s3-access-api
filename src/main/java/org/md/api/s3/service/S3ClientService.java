@@ -29,8 +29,9 @@ public class S3ClientService {
 	@Value("${s3.bucket.region}")
 	private String region;
 	
-	@Value("${s3.bucket.is.public")
-	private boolean isBucketPublic;
+	
+	@Value("#{new Boolean('${s3.bucket.is.public}')}")
+	private Boolean isBucketPublic;
 
 	@Autowired
 	private AwsCredentialService credentialsService;

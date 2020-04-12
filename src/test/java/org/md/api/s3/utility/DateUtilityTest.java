@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 class DateUtilityTest {
 
     @Test
-    void getCurrentDateTimeStampString_passValidDate_returnString() {
+    public void getCurrentDateTimeStampString_passValidDate_returnString() {
         String formattedDate = DateUtility.getCurrentDateTimeStampString();
         int expected = 17;
         int actual = formattedDate.length();
