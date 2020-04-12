@@ -21,15 +21,15 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 @SpringBootConfiguration
 public class S3ClientService {
-    
+
     private final String AWS_ACCESS_EXCEPTION_MESSAGE = "Could not access AWS S3 bucket using client: ";
     private final String AWS_CONFIGURATION_EXCEPTION_MESSAGE = "Could not configure AWS S3 Client for accessing Bucket: ";
     private final String AWS_OBJECT_EXISTS_EXCEPTION_MESSAGE = "Object Key already exists";
 
 	@Value("${s3.bucket.region}")
 	private String region;
-	
-	
+
+
 	@Value("#{new Boolean('${s3.bucket.is.public}')}")
 	private Boolean isBucketPublic;
 
@@ -83,7 +83,7 @@ public class S3ClientService {
         }
 		return content;
 	}
-    
+
 	/**
 	 * create a new object in AWS S3 bucket
 	 * @param bucketName name of bucket to put object
@@ -106,7 +106,7 @@ public class S3ClientService {
         }
         return wasSuccessful;
     };
-    
+
     /**
      * update an AWS S3 object
      * @param bucketName name of bucket where object is located
@@ -134,7 +134,7 @@ public class S3ClientService {
     }
 
     /**
-     * get configured s3 client 
+     * get configured s3 client
      * @return
      */
 	private AmazonS3 configuredS3Client() throws AwsS3GeneralException {
@@ -157,7 +157,7 @@ public class S3ClientService {
 	 * throws exception if bucket already has existing object (for POST requests)
 	 * @param bucketName name of AWS S3 bucket
 	 * @param objectKey name of object to be created
-	 * @throws AwsS3GeneralException exception thrown if 
+	 * @throws AwsS3GeneralException exception thrown if
 	 */
     private void validateS3ObjectDoesNotExist(String bucketName, String objectKey) throws AwsS3GeneralException {
     	if (configuredS3Client().doesObjectExist(bucketName, objectKey)) {

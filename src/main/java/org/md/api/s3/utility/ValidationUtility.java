@@ -6,11 +6,11 @@ import org.md.api.s3.model.exception.MissingKeyException;
 import com.amazonaws.regions.Regions;
 
 /**
- * utility class used to throw exceptions when 
+ * utility class used to throw exceptions when
  * @author cameron
  */
 public class ValidationUtility {
-    
+
     private static final String MISSING_REGION_ERROR = "Provided Region is null.";
 
 	/**

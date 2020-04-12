@@ -9,7 +9,7 @@ public class FeatureFlagService {
 
 	@Value("${feature.flag.enable.delete}")
 	private boolean isDeleteEnabled;
-	
+
 	@Value("${feature.flag.enable.get}")
 	private boolean isGetEnabled;
 
@@ -22,7 +22,7 @@ public class FeatureFlagService {
 	public FeatureFlagService() {
 		super();
 	}
-	
+
 	public void httpRequestFlagIsEnabled(String method) throws FeatureFlagException {
 		if (method == null) {
 			throw new FeatureFlagException("Null method name");
@@ -31,20 +31,20 @@ public class FeatureFlagService {
 		case ("DELETE"):
 			isMethodEnabled(method, isDeleteEnabled);
 			break;
-		case ("GET"): 
+		case ("GET"):
 			isMethodEnabled(method, isGetEnabled);
 			break;
-		case ("POST"): 
+		case ("POST"):
 			isMethodEnabled(method, isPostEnabled);
 			break;
-		case ("PUT"): 
+		case ("PUT"):
 			isMethodEnabled(method, isPutEnabled);
 			break;
 		default:
 			throw new FeatureFlagException("Unknown method name");
 		}
 	}
-	
+
 	private void isMethodEnabled(String name, boolean isEnabled) throws FeatureFlagException {
 		if (isEnabled != true) {
 			throw new FeatureFlagException("Method not enabled: " + name);
