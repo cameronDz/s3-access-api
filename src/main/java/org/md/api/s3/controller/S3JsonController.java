@@ -7,8 +7,7 @@ import java.util.Map;
 import org.apache.commons.lang3.NotImplementedException;
 import org.md.api.s3.model.exception.FeatureFlagException;
 import org.md.api.s3.service.FeatureFlagService;
-import org.md.api.s3.service.S3ClientService;
-import org.md.api.s3.utility.DateUtility;
+import org.md.api.s3.service.S3BucketJsonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -30,93 +29,39 @@ import io.swagger.annotations.ApiResponses;
 
 @CrossOrigin
 @RestController
-public class S3Controller {
-    
-    private final String JSON_EXTENSION = ".json";
+@RequestMapping(path="/json")
+public class S3JsonController {
 
 	@Value("${s3.bucket.name}")
 	private String bucketName;
 
-	@Autowired
-	private S3ClientService s3ClientService;
+    @Autowired
+    private S3BucketJsonService s3BucketJsonService;
 
 	@Autowired
 	private FeatureFlagService featureFlagService;
 
-	@ApiOperation(value = "List of all objects in S3 bucket")
+	@ApiOperation(value = "List of all JSON objects in S3 bucket")
 	@ApiResponses(value = {
 	    @ApiResponse(code = 200, message = "Successfully retrieved list."),
 	    @ApiResponse(code = 423, message = "Feature is currently locked."),
 	    @ApiResponse(code = 500, message = "Some unexpected issue happened.")
 	})
 	@RequestMapping(path="/list", method=RequestMethod.GET)
-	public ResponseEntity<Map<String, Object>> getBuckets() {
+	public ResponseEntity<Map<String, Object>> getBucketJsonList() {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
 			featureFlagService.httpRequestFlagIsEnabled("GET");
-			List<String> list = s3ClientService.getS3BucketContentList(bucketName);
+			List<String> list = s3BucketJsonService.getS3BucketJsonContentList(bucketName);
 			payload.put("payload", list);
 			status = HttpStatus.OK;
 		} catch (FeatureFlagException ffEx) {
 			status = HttpStatus.LOCKED;
-			System.out.println("getBuckets() Exception: " + ffEx.getMessage());
+            payload.put("errorMessage", ffEx.getMessage());
 		} catch (Exception ex) {
-			System.out.println("getBuckets() - Exception: " + ex.getMessage());
+            payload.put("errorMessage", ex.getMessage());
 		}
-		return new ResponseEntity<Map<String, Object>>(payload, status);
-	}
-
-    @ApiOperation(value = "List of all JSON objects that have been indexed in the index.json object of the configured S3 bucket")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Successfully retrieved list."),
-        @ApiResponse(code = 423, message = "Feature is currently locked."),
-        @ApiResponse(code = 500, message = "Some unexpected issue happened.")
-    })
-	@RequestMapping(path="/index", method=RequestMethod.GET)
-	public ResponseEntity<Map<String, Object>> getBucketContent() {
-		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-		Map<String, Object> payload = new HashMap<String, Object>();
-		try {
-			featureFlagService.httpRequestFlagIsEnabled("GET");
-			String objectKey = "index" + JSON_EXTENSION;
-			String content = s3ClientService.getS3BucketContent(bucketName, objectKey);
-			JsonNode node = new ObjectMapper().readTree(content);
-			payload.put("payload", node);
-			status = HttpStatus.OK;
-		} catch (FeatureFlagException ffEx) {
-			status = HttpStatus.LOCKED;
-			System.out.println("getBucketContent() Exception: " + ffEx.getMessage());
-		} catch (Exception ex) {
-			System.out.println("getBucketContent() - Exception: " + ex.getMessage());
-		}
-		return new ResponseEntity<Map<String, Object>>(payload, status);
-	}
-
-    @ApiOperation(value = "Remove a specific item from the index.json object used for the configured S3 bucket.")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Request was processed, JSON was removed from index."),
-        @ApiResponse(code = 204, message = "Request was successfully processed, no JSON was removed from index."),
-        @ApiResponse(code = 423, message = "Feature is currently locked."),
-        @ApiResponse(code = 500, message = "Some unexpected issue happened.")
-    })
-	@RequestMapping(path="/index/remove/{key}", method=RequestMethod.PUT)
-	public ResponseEntity<Map<String, Object>> getBucketContent(
-			@PathVariable String key) {
-		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-		Map<String, Object> payload = new HashMap<String, Object>();
-		Boolean removedIndex = null;
-		try {
-			featureFlagService.httpRequestFlagIsEnabled("PUT");
-			removedIndex = s3ClientService.updateS3BucketIndex(bucketName, key);
-			status = removedIndex ? HttpStatus.OK : HttpStatus.NO_CONTENT;
-		} catch (FeatureFlagException ffEx) {
-			status = HttpStatus.LOCKED;
-			System.out.println("getBucketJsonContent() Exception: " + ffEx.getMessage());
-		} catch (Exception ex) {
-			System.out.println("getBucketJsonContent() - Exception: " + ex.getMessage());
-		}
-		payload.put("removedIndex", removedIndex);
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 
@@ -126,57 +71,48 @@ public class S3Controller {
         @ApiResponse(code = 423, message = "Feature is currently locked."),
         @ApiResponse(code = 500, message = "Some unexpected issue happened.")
     })
-	@RequestMapping(path="/json/{key}", method=RequestMethod.GET)
+	@RequestMapping(path="/{key}", method=RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getBucketJsonContent(
 			@PathVariable String key) {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
 			featureFlagService.httpRequestFlagIsEnabled("GET");
-			String objectkey = key + JSON_EXTENSION;
-			String content = s3ClientService.getS3BucketContent(bucketName, objectkey);
-			JsonNode node = new ObjectMapper().readTree(content);
-			payload.put("payload", node);
+			String content = s3BucketJsonService.getS3BucketJsonContent(bucketName, key);
+			payload.put("payload", new ObjectMapper().readTree(content));
 			status = HttpStatus.OK;
 		} catch (FeatureFlagException ffEx) {
-			status = HttpStatus.LOCKED;
-			System.out.println("getBucketJsonContent() Exception: " + ffEx.getMessage());
-		} catch (Exception ex) {
-			System.out.println("getBucketJsonContent() - Exception: " + ex.getMessage());
-		}
+            status = HttpStatus.LOCKED;
+            payload.put("errorMessage", ffEx.getMessage());
+        } catch (Exception ex) {
+            payload.put("errorMessage", ex.getMessage());
+        }
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 
-    @ApiOperation(value = "Upload a specific JSON key to S3 bucket; file will be named ")
+    @ApiOperation(value = "Upload a specific JSON key to S3 bucket; file will be named with Long value of current DateTime if no key is provided")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Successfully uploaded key."),
         @ApiResponse(code = 423, message = "Feature is currently locked."),
         @ApiResponse(code = 500, message = "Some unexpected issue happened.")
     })
-	@RequestMapping(path="/upload", method=RequestMethod.POST)
+	@RequestMapping(path="/upload/{key}", method=RequestMethod.POST)
 	public ResponseEntity<Map<String, Object>> uploadBucketJsonContent(
-			@RequestParam(required=false, defaultValue="false") Boolean index,
+			@PathVariable(required=false) String key,
 			@RequestBody JsonNode body) {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
-		Boolean successfullyIndexed = null;
 		try {
 			featureFlagService.httpRequestFlagIsEnabled("POST");
-			String objectKey = DateUtility.getCurrentDateTimeStampString() + JSON_EXTENSION;
-			String content = String.valueOf(body);
-			s3ClientService.postS3BucketContent(bucketName, objectKey, content);
+			String objectKey = s3BucketJsonService.postS3BucketJsonContent(bucketName, key, String.valueOf(body));
 			status = HttpStatus.CREATED;
 			payload.put("key", objectKey);
-			if (index == true) {
-				successfullyIndexed = s3ClientService.addKeyToJsonIndex(bucketName, objectKey);
-			}
 		} catch (FeatureFlagException ffEx) {
-			status = HttpStatus.LOCKED;
-			System.out.println("uploadBucketJsonContent() Exception: " + ffEx.getMessage());
-		} catch (Exception ex) {
-			System.out.println("uploadBucketJsonContent() Exception: " + ex.getMessage());
-		}
-		payload.put("indexed", successfullyIndexed);
+            status = HttpStatus.LOCKED;
+            payload.put("errorMessage", ffEx.getMessage());
+        } catch (Exception ex) {
+            payload.put("errorMessage", ex.getMessage());
+        }
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 
@@ -196,8 +132,7 @@ public class S3Controller {
 		Boolean successfullyUpdated = false;
 		try {
 			featureFlagService.httpRequestFlagIsEnabled("PUT");
-			String objectKey = key + JSON_EXTENSION;
-			successfullyUpdated = s3ClientService.putS3BucketContent(bucketName, objectKey, new ObjectMapper().writeValueAsString(body));
+			successfullyUpdated = s3BucketJsonService.putS3BucketJsonContent(bucketName, key, new ObjectMapper().writeValueAsString(body));
 			status = HttpStatus.OK;
 		} catch (FeatureFlagException ffEx) {
 			status = HttpStatus.LOCKED;
@@ -223,20 +158,18 @@ public class S3Controller {
 			@PathVariable String key) {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
-		Boolean removedFromIndexed = null;
 		try {
-			featureFlagService.httpRequestFlagIsEnabled("DELETE");
+			featureFlagService.httpRequestFlagIsEnabled(RequestMethod.DELETE.toString());
 			throw new NotImplementedException("Method not implemented");
-		} catch (FeatureFlagException ffEx) {
-			status = HttpStatus.LOCKED;
-			System.out.println("uploadBucketJsonContent() Exception: " + ffEx.getMessage());
-		} catch (NotImplementedException niEx) {
-			status = HttpStatus.NOT_IMPLEMENTED;
-			System.out.println("uploadBucketJsonContent() Exception: " + niEx.getMessage());
-		} catch (Exception ex) {
-			System.out.println("uploadBucketJsonContent() Exception: " + ex.getMessage());
-		}
-		payload.put("indexed", removedFromIndexed);
+        } catch (FeatureFlagException ffEx) {
+            status = HttpStatus.LOCKED;
+            payload.put("message", ffEx.getMessage());
+        } catch (NotImplementedException niEx) {
+            status = HttpStatus.NOT_IMPLEMENTED;
+            payload.put("message", niEx.getMessage());
+        } catch (Exception ex) {
+            payload.put("message", ex.getMessage());
+        }
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 }

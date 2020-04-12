@@ -42,7 +42,7 @@ public class ValidationUtility {
 	 * @param s string being checked
 	 * @return true if null or empty, false otherwise
 	 */
-	private static boolean isStringNullOrEmpty(String s) {
+	public static boolean isStringNullOrEmpty(String s) {
 		return s == null || s.trim().isEmpty();
 	}
 

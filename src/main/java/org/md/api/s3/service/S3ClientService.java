@@ -3,8 +3,8 @@ package org.md.api.s3.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.md.api.s3.model.exception.AwsS3GeneralException;
 import org.md.api.s3.model.exception.MissingAwsInformation;
-import org.md.api.s3.model.exception.MissingKeyException;
 import org.md.api.s3.utility.InputStreamUtility;
 import org.md.api.s3.utility.ValidationUtility;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,16 +18,19 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 @SpringBootConfiguration
 public class S3ClientService {
+    
+    private final String AWS_ACCESS_EXCEPTION_MESSAGE = "Could not access AWS S3 bucket using client: ";
+    private final String AWS_CONFIGURATION_EXCEPTION_MESSAGE = "Could not configure AWS S3 Client for accessing Bucket: ";
+    private final String AWS_OBJECT_EXISTS_EXCEPTION_MESSAGE = "Object Key already exists";
 
 	@Value("${s3.bucket.region}")
 	private String region;
+	
+	@Value("${s3.bucket.is.public")
+	private boolean isBucketPublic;
 
 	@Autowired
 	private AwsCredentialService credentialsService;
@@ -36,129 +39,136 @@ public class S3ClientService {
 		super();
 	}
 
-    public List<String> getS3BucketContentList(String bucketName) {
-		List<String> list = null;
+	/**
+	 * gets a list of all objects in AWS S3 bucket
+	 * @param bucketName name of bucket to get list
+	 * @return list of string of all object filenames in bucket
+	 * @throws AwsS3GeneralException
+	 */
+    public List<String> getS3BucketContentList(String bucketName) throws AwsS3GeneralException {
+		List<String> list = new ArrayList<String>();
 		try {
 			ValidationUtility.validateKeyExists(bucketName, "bucket");
 			ObjectListing objectList = configuredS3Client().listObjects(bucketName);
-			list = new ArrayList<String>();
 			for (S3ObjectSummary summary : objectList.getObjectSummaries()) {
 				list.add(summary.getKey());
 			}
-		} catch (Exception ex) {
-			System.out.println("getS3BucketContentList() - Exception: " + ex.getMessage());
-		}
+        } catch (AwsS3GeneralException awsException) {
+            throw awsException;
+        } catch (Exception ex) {
+            throw new AwsS3GeneralException(AWS_ACCESS_EXCEPTION_MESSAGE + ex.getMessage());
+        }
 		return list;
 	}
 
-	public String getS3BucketContent(String bucketName, String objectKey) {
+    /**
+     * get a specific object on S3 bucket
+     * @param bucketName name of bucket
+     * @param objectKey name of object in bucket
+     * @return string of content of object in bucket
+     * @throws AwsS3GeneralException
+     */
+	public String getS3BucketContent(String bucketName, String objectKey) throws AwsS3GeneralException {
 		String content = null;
 		try {
 			ValidationUtility.validateKeyExists(bucketName, "bucket");
 			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
 			S3Object s3Object = configuredS3Client().getObject(bucketName, objectKey);
 			content = InputStreamUtility.getAsString(s3Object.getObjectContent());
-		} catch (Exception ex) {
-			System.out.println("getS3BucketContent() - Exception: " + ex.getMessage());
-		}
+        } catch (AwsS3GeneralException awsException) {
+            throw awsException;
+        } catch (Exception ex) {
+            throw new AwsS3GeneralException(AWS_ACCESS_EXCEPTION_MESSAGE + ex.getMessage());
+        }
 		return content;
 	}
     
-    public Boolean putS3BucketContent(String bucketName, String objectKey, String content) throws MissingAwsInformation, MissingKeyException {
+	/**
+	 * create a new object in AWS S3 bucket
+	 * @param bucketName name of bucket to put object
+	 * @param objectKey name of object being put in bucket
+	 * @param content content of file
+	 * @return true if object was created
+	 * @throws AwsS3GeneralException
+	 */
+    public Boolean postS3BucketContent(String bucketName, String objectKey, String content) throws AwsS3GeneralException {
+        Boolean wasSuccessful = false;
+        try {
+            ValidationUtility.validateKeyExists(bucketName, "bucket");
+            ValidationUtility.validateKeyExists(objectKey, "bucket-object");
+            validateS3ObjectDoesNotExist(bucketName, objectKey);
+            wasSuccessful = putS3BucketContent(bucketName, objectKey, content);
+        } catch (AwsS3GeneralException awsException) {
+            throw awsException;
+        } catch (Exception ex) {
+            throw new AwsS3GeneralException(AWS_ACCESS_EXCEPTION_MESSAGE + ex.getMessage());
+        }
+        return wasSuccessful;
+    };
+    
+    /**
+     * update an AWS S3 object
+     * @param bucketName name of bucket where object is located
+     * @param objectKey object name to be updated
+     * @param content content to be put in object
+     * @return true if object was update, false otherwise
+     * @throws AwsS3GeneralException
+     */
+    public Boolean putS3BucketContent(String bucketName, String objectKey, String content) throws AwsS3GeneralException {
         Boolean wasSuccessful = false;
     	try {
 			ValidationUtility.validateKeyExists(bucketName, "bucket");
 			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
 			ValidationUtility.validateKeyExists(content, "content");
 			configuredS3Client().putObject(bucketName, objectKey, content);
-			try {
-			    configuredS3Client().setObjectAcl(bucketName, objectKey, CannedAccessControlList.PublicRead);
-	        } catch (Exception e) {
-	            System.out.println("ERROR: " + e.getMessage());
-	        }
+			CannedAccessControlList acl = isBucketPublic ? CannedAccessControlList.PublicRead : CannedAccessControlList.Private;
+		    configuredS3Client().setObjectAcl(bucketName, objectKey, acl);
 			wasSuccessful = true;
-        } catch (MissingKeyException e) {
-               throw e;
-        } catch (Exception e) {
-		    throw new MissingAwsInformation(e.getMessage());
-    	}
+        } catch (AwsS3GeneralException awsException) {
+            throw awsException;
+        } catch (Exception ex) {
+            throw new AwsS3GeneralException(AWS_ACCESS_EXCEPTION_MESSAGE + ex.getMessage());
+        }
     	return wasSuccessful;
     }
 
-	public Boolean updateS3BucketIndex(String bucketName, String key) throws MissingAwsInformation, MissingKeyException {
-		Boolean updated = null;
-		String bucketObject = "index.json";
-		try {
-			boolean found = false;
-			ArrayNode content = (ArrayNode) new ObjectMapper().readTree(getS3BucketContent(bucketName, bucketObject)).get("list");
-			Integer length = content.size();
-			for (int index = 0; index < length; index++) {
-				if (key != null && key.equals(content.get(index).asText())) {
-					content.remove(index);
-					found = true;
-					break;
-				}
-			}
-			if (found == true) {
-				String newContent = "{ \"list\": " + new ObjectMapper().writeValueAsString(content) + " }";
-				putS3BucketContent(bucketName, bucketObject, newContent);
-				updated = true;
-			} else {
-				updated = false;
-			}
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
-		return updated;
-	}
-    
-    public boolean addKeyToJsonIndex(String bucketName, String keyName) {
-    	boolean keyAddedToIndex = false;
-    	try {
-    		String indexString = getS3BucketContent(bucketName, "index.json");
-    		ArrayNode listNode = (ArrayNode) new ObjectMapper().readTree(indexString).get("list");
-    		listNode.add(Long.valueOf(keyName.replace(".json", "")));
-    		String content = "{\"list\":" + String.valueOf(listNode) + "}";
-    		putS3BucketContent(bucketName, "index.json", content);
-    		keyAddedToIndex = true;
-    	} catch (Exception ex) {
-			System.out.println("addKeyToJsonIndex() - Exception: " + ex.getMessage());
-    	}
-    	return keyAddedToIndex;
-    }
-    
-    public void postS3BucketContent(String bucketName, String objectKey, String content) {
-    	try {
-			ValidationUtility.validateKeyExists(bucketName, "bucket");
-			ValidationUtility.validateKeyExists(objectKey, "bucket-object");
-			validateS3ObjectDoesNotExist(bucketName, objectKey);
-			putS3BucketContent(bucketName, objectKey, content);
-		} catch (Exception ex) {
-			System.out.println("postS3BucketContent() - Exception: " + ex.getMessage());
-    	}
-    };
-
-	private AmazonS3 configuredS3Client() {
+    /**
+     * get configured s3 client 
+     * @return
+     */
+	private AmazonS3 configuredS3Client() throws AwsS3GeneralException {
 		AmazonS3 s3Client = null;
 		try {
 			AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
 			builder.withCredentials(credentialsService.generateAwsCredentialProvider());
 			builder.withRegion(getRegion());
 			s3Client = builder.build();
-		} catch (Exception ex) {
-			System.out.println("configuredS3Client() - Exception: " + ex.getMessage());
-    	}
+		} catch (AwsS3GeneralException awsException) {
+            throw awsException;
+        } catch (Exception ex) {
+            String message = AWS_CONFIGURATION_EXCEPTION_MESSAGE + ex.getMessage();
+            throw new AwsS3GeneralException(message);
+        }
 		return s3Client;
 	}
 
-    private void validateS3ObjectDoesNotExist(String bucketName, String objectKey) throws Exception {
+	/**
+	 * throws exception if bucket already has existing object (for POST requests)
+	 * @param bucketName name of AWS S3 bucket
+	 * @param objectKey name of object to be created
+	 * @throws AwsS3GeneralException exception thrown if 
+	 */
+    private void validateS3ObjectDoesNotExist(String bucketName, String objectKey) throws AwsS3GeneralException {
     	if (configuredS3Client().doesObjectExist(bucketName, objectKey)) {
-    		throw new Exception("Object Key already exists");
+    		throw new AwsS3GeneralException(AWS_OBJECT_EXISTS_EXCEPTION_MESSAGE);
     	}
     }
 
+    /**
+     * get AWS S3 bucket region, throws exception if unable to get region
+     * @return Region to be used for client configuration
+     * @throws MissingAwsInformation exception thrown
+     */
 	private Regions getRegion() throws MissingAwsInformation {
 		Regions awsRegion = Regions.fromName(region);
 		ValidationUtility.validateAwsRegion(awsRegion);
