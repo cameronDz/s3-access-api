@@ -42,6 +42,7 @@ public class S3JsonController {
 	@Value("${s3.bucket.name}")
 	private String bucketName;
 
+
     @Autowired
     private S3BucketJsonService s3BucketJsonService;
 
@@ -97,7 +98,7 @@ public class S3JsonController {
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
 
-    @ApiOperation(value = "Upload a specific JSON key to S3 bucket; file will be named with Long value of current DateTime if no key is provided")
+    @ApiOperation(value = "Upload a specific JSON key to S3 bucket")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Successfully uploaded key."),
         @ApiResponse(code = 423, message = "Feature is currently locked."),
@@ -105,7 +106,7 @@ public class S3JsonController {
     })
 	@RequestMapping(path="/upload/{key}", method=RequestMethod.POST)
 	public ResponseEntity<Map<String, Object>> uploadBucketJsonContent(
-			@PathVariable(required=false) String key,
+			@PathVariable(required=true) String key,
 			@RequestBody JsonNode body) {
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();

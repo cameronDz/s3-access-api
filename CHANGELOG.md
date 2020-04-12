@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] 2020-04-12
+### Added
+- Ability to set feature flags for specific HTTP methods through passing optional variables
+
+### Changed
+- Set a default value (true) for public bucket flag so it no longer has to be passed
+
 ## [1.0.0] 2020-04-11
 ### Added
 - Created validation classes for checking S3 request payloads before trying to communicate
