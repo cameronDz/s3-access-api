@@ -70,6 +70,6 @@ public class S3BucketJsonService {
      */
     public Boolean putS3BucketJsonContent(String bucketName, String objectKey, String content) throws AwsS3GeneralException {
         String key = objectKey + JSON_EXTENSION;
-        return s3ClientService.postS3BucketContent(bucketName, key, content);
+        return s3ClientService.putS3BucketContent(bucketName, key, content);
     }
 }
