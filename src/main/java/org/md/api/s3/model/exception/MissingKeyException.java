@@ -11,7 +11,7 @@ public class MissingKeyException extends AwsS3GeneralException {
 	public MissingKeyException() {
 		super();
 	}
-	
+
 	public MissingKeyException(String message) {
 		super(message);
 	}

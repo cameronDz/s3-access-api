@@ -15,7 +15,7 @@ public class S3BucketJsonService {
 
     @Autowired
     private S3ClientService s3ClientService;
-    
+
     /**
      * get a list of all the .JSON objects in a AWS S3 bucket
      * @param bucketName name of bucket to get list of objects
@@ -44,7 +44,7 @@ public class S3BucketJsonService {
         String key = objectKey + JSON_EXTENSION;
         return s3ClientService.getS3BucketContent(bucketName, key);
     }
-    
+
     /**
      * Upload a new JSON object key to AWS S3 bucket
      * @param bucketName name of S3 bucket
@@ -59,7 +59,7 @@ public class S3BucketJsonService {
         s3ClientService.postS3BucketContent(bucketName, key, content);
         return objectKeyName;
     }
-    
+
     /**
      * Update an existing JSON object key in an AWS S3 bucket
      * @param bucketName name of S3 bucket

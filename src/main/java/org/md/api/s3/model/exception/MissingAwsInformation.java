@@ -7,7 +7,7 @@ public class MissingAwsInformation extends AwsS3GeneralException {
 	public MissingAwsInformation() {
 		super();
 	}
-	
+
 	public MissingAwsInformation(String message) {
 		super(message);
 	}

@@ -7,7 +7,7 @@ public class FeatureFlagException extends Exception {
 	public FeatureFlagException() {
 		super();
 	}
-	
+
 	public FeatureFlagException(String message) {
 		super(message);
 	}

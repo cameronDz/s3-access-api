@@ -33,9 +33,10 @@ import io.swagger.annotations.ApiResponses;
 public class S3JsonController {
 
     private static final String NOT_IMPLEMENTED_EXCEPTION_MESSAGE = "Method not implemented";
-    
-    private static final String KEY_NAME_PAYLOAD = "payload";
+
     private static final String KEY_NAME_ERROR_MESSAGE = "errorMessage";
+    private static final String KEY_NAME_NEW_OBJECT_NAME = "newObjectKeyName";
+    private static final String KEY_NAME_PAYLOAD = "payload";
     private static final String KEY_NAME_UPDATED = "updated";
 
 	@Value("${s3.bucket.name}")
@@ -112,7 +113,7 @@ public class S3JsonController {
 			featureFlagService.httpRequestFlagIsEnabled(RequestMethod.POST.toString());
 			String objectKey = s3BucketJsonService.postS3BucketJsonContent(bucketName, key, String.valueOf(body));
 			status = HttpStatus.CREATED;
-			payload.put("key", objectKey);
+			payload.put(KEY_NAME_NEW_OBJECT_NAME, objectKey);
 		} catch (FeatureFlagException ffEx) {
             status = HttpStatus.LOCKED;
             payload.put(KEY_NAME_ERROR_MESSAGE, ffEx.getMessage());
@@ -138,7 +139,8 @@ public class S3JsonController {
 		Boolean successfullyUpdated = false;
 		try {
 			featureFlagService.httpRequestFlagIsEnabled(RequestMethod.PUT.toString());
-			successfullyUpdated = s3BucketJsonService.putS3BucketJsonContent(bucketName, key, new ObjectMapper().writeValueAsString(body));
+			String content = new ObjectMapper().writeValueAsString(body);
+			successfullyUpdated = s3BucketJsonService.putS3BucketJsonContent(bucketName, key, content);
 			status = HttpStatus.OK;
 		} catch (FeatureFlagException ffEx) {
 			status = HttpStatus.LOCKED;

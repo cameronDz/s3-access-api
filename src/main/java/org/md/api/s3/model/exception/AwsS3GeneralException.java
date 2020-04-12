@@ -7,7 +7,7 @@ public class AwsS3GeneralException extends Exception {
     public AwsS3GeneralException() {
         super();
     }
-    
+
     public AwsS3GeneralException(String message) {
         super(message);
     }
