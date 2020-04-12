@@ -10,9 +10,9 @@
 	</parent>
 	<groupId>org.md</groupId>
 	<artifactId>s3-access-api</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>s3-access-api</name>
-	<description>Demo project for Spring Boot</description>
+	<description>REST API for accessing S3 bucket JSON objects</description>
 
 	<properties>
 		<java.version>1.8</java.version>
