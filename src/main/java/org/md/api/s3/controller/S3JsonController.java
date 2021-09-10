@@ -1,5 +1,6 @@
 package org.md.api.s3.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ public class S3JsonController {
 
     private static final String KEY_NAME_ERROR_MESSAGE = "errorMessage";
     private static final String KEY_NAME_NEW_OBJECT_NAME = "newObjectKeyName";
+    private static final String KEY_NAME_LIST = "list";
     private static final String KEY_NAME_PAYLOAD = "payload";
     private static final String KEY_NAME_UPDATED = "updated";
 
@@ -97,6 +99,44 @@ public class S3JsonController {
         }
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
+
+
+    @ApiOperation(value = "Get list of JSON key from S3 bucket")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Successfully retrieved keys."),
+        @ApiResponse(code = 201, message = "Successfully processed but no keys."),
+        @ApiResponse(code = 423, message = "Feature is currently locked."),
+        @ApiResponse(code = 500, message = "Some unexpected issue happened.")
+    })
+    @RequestMapping(path="/objects", method=RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> getBucketJsonsContent(
+    		@RequestBody List<String> keys) {
+		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+		Map<String, Object> payload = new HashMap<String, Object>();
+        try {
+			featureFlagService.httpRequestFlagIsEnabled(RequestMethod.POST.toString());
+            List<Object> list = new ArrayList<Object>();
+            Integer length = keys == null ? 0 : keys.size();
+            String content = "";
+            ObjectMapper = new ObjectMapper();
+            for (int idx = 0; idx < length; idx++) {
+            	if (keys[idx] != null) {
+                    content = s3BucketJsonService.getS3BucketJsonContent(bucketName, keys[idx]);
+                    list.push(mapper.readTree(content));
+                }
+            };
+ 			Map<String, List<Object>> payloadKey = new HashMap<String, List<Object>>();
+ 			payloadKey.put(KEY_NAME_LIST, list);
+            payload.put(KEY_NAME_PAYLOAD, payloadKey);
+			status = list == null || list.isEmpty() ? HttpStatus.NO_CONTENT : HttpStatus.OK;
+		} catch (FeatureFlagException ffEx) {
+            status = HttpStatus.LOCKED;
+            payload.put(KEY_NAME_ERROR_MESSAGE, ffEx.getMessage());
+        } catch (Exception ex) {
+            payload.put(KEY_NAME_ERROR_MESSAGE, ex.getMessage());
+        }
+		return new ResponseEntity<Map<String, Object>>(payload, status);
+    }
 
     @ApiOperation(value = "Upload a specific JSON key to S3 bucket")
     @ApiResponses(value = {
