@@ -118,11 +118,13 @@ public class S3JsonController {
             List<Object> list = new ArrayList<Object>();
             Integer length = keys == null ? 0 : keys.size();
             String content = "";
-            ObjectMapper = new ObjectMapper();
+            String key = "";
+            ObjectMapper mapper = new ObjectMapper();
             for (int idx = 0; idx < length; idx++) {
-            	if (keys[idx] != null) {
-                    content = s3BucketJsonService.getS3BucketJsonContent(bucketName, keys[idx]);
-                    list.push(mapper.readTree(content));
+            	key = keys.get(idx);
+            	if (key != null && !key.isEmpty()) {
+                    content = s3BucketJsonService.getS3BucketJsonContent(bucketName, key);
+                    list.add(mapper.readTree(content));
                 }
             };
  			Map<String, List<Object>> payloadKey = new HashMap<String, List<Object>>();
