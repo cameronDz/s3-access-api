@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] 2021-09-10
+
+### Added
+- POST endpoint for fetching list of objects from API
+
 ## [1.1.0] 2020-04-12
 ### Added
 - Optional HTTP Authorization header for including an API key
