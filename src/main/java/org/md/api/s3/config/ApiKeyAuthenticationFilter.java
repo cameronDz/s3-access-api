@@ -55,7 +55,7 @@ public class ApiKeyAuthenticationFilter implements Filter {
         String authHeader = httpRequest.getHeader("Authorization");
         if(authHeader != null) {
             authHeader = authHeader.trim();
-            if(authHeader.toLowerCase().startsWith(authMethod + " ")) {
+            if(authHeader.startsWith(authMethod + " ")) {
                 apiKey = authHeader.substring(authMethod.length()).trim();
             }
         }
