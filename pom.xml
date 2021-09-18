@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>org.md</groupId>
 	<artifactId>s3-access-api</artifactId>
-	<version>1.2.0</version>
+	<version>1.2.1</version>
 	<name>s3-access-api</name>
 	<description>REST API for accessing S3 bucket objects</description>
 
