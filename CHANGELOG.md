@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] 2021-12-11
+
+### Fixed
+
+- Security vulnerable package log4j-api version bump
+
 ## [1.2.1] 2021-09-17
 
 ### Fixed
