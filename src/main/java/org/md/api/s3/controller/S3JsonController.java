@@ -9,17 +9,13 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.md.api.s3.model.exception.FeatureFlagException;
 import org.md.api.s3.service.FeatureFlagService;
 import org.md.api.s3.service.S3BucketJsonService;
+import org.md.api.s3.service.TokenValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +40,9 @@ public class S3JsonController {
 	@Value("${s3.bucket.name}")
 	private String bucketName;
 
+
+    @Autowired
+    private TokenValidationService tokenValidationService;
 
     @Autowired
     private S3BucketJsonService s3BucketJsonService;
@@ -149,7 +148,9 @@ public class S3JsonController {
 	@RequestMapping(path="/upload/{key}", method=RequestMethod.POST)
 	public ResponseEntity<Map<String, Object>> uploadBucketJsonContent(
 			@PathVariable(required=true) String key,
+            @RequestHeader HttpHeaders headers,
 			@RequestBody JsonNode body) {
+        tokenValidationService.validateToken(headers);
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
@@ -175,8 +176,10 @@ public class S3JsonController {
 	@RequestMapping(path="/update/{key}", method=RequestMethod.PUT)
 	public ResponseEntity<Map<String, Object>> updateBucketJsonContent(
 			@RequestParam(required=false, defaultValue="false") Boolean index,
+            @RequestHeader HttpHeaders headers,
 			@RequestBody JsonNode body,
 			@PathVariable String key) {
+        tokenValidationService.validateToken(headers);
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
 		Boolean successfullyUpdated = false;
@@ -206,7 +209,9 @@ public class S3JsonController {
     })
 	@RequestMapping(path="/delete/{key}", method=RequestMethod.DELETE)
 	public ResponseEntity<Map<String, Object>> deleteBucketJsonObject(
-			@PathVariable String key) {
+			@PathVariable String key,
+            @RequestHeader HttpHeaders headers) {
+        tokenValidationService.validateToken(headers);
 		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 		Map<String, Object> payload = new HashMap<String, Object>();
 		try {
@@ -223,4 +228,9 @@ public class S3JsonController {
         }
 		return new ResponseEntity<Map<String, Object>>(payload, status);
 	}
+
+    @RequestMapping(path="/liveness", method=RequestMethod.GET)
+    public ResponseEntity<Boolean> getIsAlive() {
+        return new ResponseEntity<Boolean>(Boolean.TRUE, HttpStatus.OK);
+    }
 }

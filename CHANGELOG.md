@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] 2022-05-08
+
+### Added
+
+- JWT token validity check on modifying endpoints
+- liveness endpoint to ensure app is alive
+
 ## [1.2.2] 2021-12-11
 
 ### Fixed
